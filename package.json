@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently -k -n \"SERVER,CLIENT\" -c \"blue,green\" \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
-    "build": "npm --prefix server install && npm --prefix client install && npm --prefix server run build && npm --prefix client run build",
+    "build": "npm --prefix server install --include=dev && npm --prefix client install --include=dev && npm --prefix server run build && npm --prefix client run build",
     "test": "npm --prefix client run test",
     "start": "node server/dist/index.js"
   },
