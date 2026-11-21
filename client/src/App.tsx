@@ -10,6 +10,7 @@ import {
   LeagueInfo,
   MatchMode,
   PrefixMode,
+  PriceMode,
   UniqueCategory,
   UniqueItem,
 } from './services/types.js';
@@ -42,6 +43,7 @@ export const App: React.FC = () => {
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [priceCurrency, setPriceCurrency] = useState<'chaos' | 'divine'>('chaos');
+  const [priceMode, setPriceMode] = useState<PriceMode>('total');
   const [replicaFilter, setReplicaFilter] = useState<'all' | 'no-replicas' | 'replicas-only'>('all');
   // Ultimatum Pool Only toggle (Defaults to true per user request!)
   const [ultimatumOnly, setUltimatumOnly] = useState<boolean>(true);
@@ -141,6 +143,28 @@ export const App: React.FC = () => {
     return counts;
   }, [items, ultimatumOnly]);
 
+  // Helper to compute effective item price based on priceMode
+  const getItemPrice = useCallback(
+    (item: UniqueItem, curr: 'chaos' | 'divine', mode: PriceMode = priceMode): number => {
+      if (item.category !== 'Divination Card' || !item.stackSize || item.stackSize <= 1) {
+        return curr === 'chaos' ? item.chaosValue : item.divineValue;
+      }
+      if (mode === 'total') {
+        return curr === 'chaos'
+          ? (item.totalChaosValue ?? Math.round(item.chaosValue * item.stackSize * 10) / 10)
+          : (item.totalDivineValue ?? Math.round(item.divineValue * item.stackSize * 100) / 100);
+      }
+      if (mode === 'ultimatum') {
+        const qty = item.ultimatumQuantity ?? Math.ceil(item.stackSize / 2);
+        return curr === 'chaos'
+          ? (item.ultimatumChaosValue ?? Math.round(item.chaosValue * qty * 10) / 10)
+          : (item.ultimatumDivineValue ?? Math.round(item.divineValue * qty * 100) / 100);
+      }
+      return curr === 'chaos' ? item.chaosValue : item.divineValue;
+    },
+    [priceMode]
+  );
+
   // Filtered & Sorted items
   const filteredItems = useMemo(() => {
     const lowerSearch = search.trim().toLowerCase();
@@ -162,8 +186,8 @@ export const App: React.FC = () => {
       if (replicaFilter === 'no-replicas' && item.isReplica) return false;
       if (replicaFilter === 'replicas-only' && !item.isReplica) return false;
 
-      // Price filter
-      const price = priceCurrency === 'chaos' ? item.chaosValue : item.divineValue;
+      // Price filter (respects priceMode: total / ultimatum / unit)
+      const price = getItemPrice(item, priceCurrency, priceMode);
       if (minVal !== null && !isNaN(minVal) && price < minVal) return false;
       if (maxVal !== null && !isNaN(maxVal) && price > maxVal) return false;
 
@@ -176,7 +200,7 @@ export const App: React.FC = () => {
 
       return true;
     });
-  }, [items, ultimatumOnly, search, selectedCategory, minPrice, maxPrice, priceCurrency, replicaFilter]);
+  }, [items, ultimatumOnly, search, selectedCategory, minPrice, maxPrice, priceCurrency, priceMode, replicaFilter, getItemPrice]);
 
   // Sort items
   const sortedItems = useMemo(() => {
@@ -194,10 +218,10 @@ export const App: React.FC = () => {
           comparison = a.category.localeCompare(b.category);
           break;
         case 'chaosValue':
-          comparison = a.chaosValue - b.chaosValue;
+          comparison = getItemPrice(a, 'chaos', priceMode) - getItemPrice(b, 'chaos', priceMode);
           break;
         case 'divineValue':
-          comparison = a.divineValue - b.divineValue;
+          comparison = getItemPrice(a, 'divine', priceMode) - getItemPrice(b, 'divine', priceMode);
           break;
         case 'listingCount':
           comparison = a.listingCount - b.listingCount;
@@ -207,7 +231,7 @@ export const App: React.FC = () => {
       return sortDirection === 'asc' ? comparison : -comparison;
     });
     return sorted;
-  }, [filteredItems, sortField, sortDirection]);
+  }, [filteredItems, sortField, sortDirection, priceMode, getItemPrice]);
 
   // Selected items array
   const selectedItems = useMemo(() => {
@@ -379,6 +403,8 @@ export const App: React.FC = () => {
               }}
               priceCurrency={priceCurrency}
               onCurrencyChange={setPriceCurrency}
+              priceMode={priceMode}
+              onPriceModeChange={setPriceMode}
               replicaFilter={replicaFilter}
               onReplicaFilterChange={(val) => {
                 setReplicaFilter(val);
@@ -411,6 +437,7 @@ export const App: React.FC = () => {
               sortField={sortField}
               sortDirection={sortDirection}
               onSort={handleSort}
+              priceMode={priceMode}
               page={page}
               pageSize={pageSize}
               onPageChange={setPage}

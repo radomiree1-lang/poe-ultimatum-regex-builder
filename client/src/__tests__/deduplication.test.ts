@@ -163,4 +163,19 @@ describe('deduplicateAndNormalize', () => {
     const result = deduplicateAndNormalize(rawItems);
     expect(result.map((r) => r.name)).toEqual(['Cheap Item', 'Mid Item', 'Expensive Item']);
   });
+
+  it('assigns stackSize = 1 and matching total/ultimatum values for Unique items', () => {
+    const rawItems: Array<{ line: PoeNinjaLine; category: UniqueCategory }> = [
+      {
+        line: { id: 1, name: 'Mageblood', baseType: 'Heavy Belt', icon: '', chaosValue: 15000, divineValue: 100 },
+        category: 'Accessory',
+      },
+    ];
+
+    const result = deduplicateAndNormalize(rawItems);
+    expect(result[0].stackSize).toBe(1);
+    expect(result[0].totalChaosValue).toBe(15000);
+    expect(result[0].ultimatumQuantity).toBe(1);
+    expect(result[0].ultimatumChaosValue).toBe(15000);
+  });
 });

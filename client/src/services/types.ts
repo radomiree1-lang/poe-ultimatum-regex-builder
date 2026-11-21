@@ -14,6 +14,12 @@ export interface UniqueItem {
   category: UniqueCategory;
   chaosValue: number;
   divineValue: number;
+  stackSize?: number;
+  totalChaosValue?: number;
+  totalDivineValue?: number;
+  ultimatumQuantity?: number;
+  ultimatumChaosValue?: number;
+  ultimatumDivineValue?: number;
   icon: string;
   listingCount: number;
   variantCount: number;
@@ -39,6 +45,7 @@ export interface UniquesApiResponse {
 export type MatchMode = 'reward' | 'sacrifice' | 'either';
 export type PrefixMode = 'standard' | 'compact';
 export type CompressionMode = 'full' | 'short';
+export type PriceMode = 'total' | 'ultimatum' | 'unit';
 
 export interface RegexOptions {
   matchMode: MatchMode;

@@ -1,4 +1,5 @@
 import { CORE_ULTIMATUM_UNIQUES } from './data/coreUniques.js';
+import { CARD_STACK_SIZES } from './data/cardStackSizes.js';
 import {
   LeagueInfo,
   PoeNinjaLine,
@@ -175,6 +176,13 @@ async function fetchDivinationCards(league: string): Promise<UniqueItem[]> {
               divineRate > 0
                 ? Math.round(chaosValue * divineRate * 100) / 100
                 : 0;
+            const stackSize = CARD_STACK_SIZES[name] || 1;
+            const ultimatumQuantity = Math.ceil(stackSize / 2);
+            const totalChaosValue = Math.round(chaosValue * stackSize * 10) / 10;
+            const totalDivineValue = Math.round(divineValue * stackSize * 100) / 100;
+            const ultimatumChaosValue = Math.round(chaosValue * ultimatumQuantity * 10) / 10;
+            const ultimatumDivineValue = Math.round(divineValue * ultimatumQuantity * 100) / 100;
+
             const slug = name
               .toLowerCase()
               .replace(/[^a-z0-9]+/g, '-')
@@ -187,6 +195,12 @@ async function fetchDivinationCards(league: string): Promise<UniqueItem[]> {
               category: 'Divination Card' as const,
               chaosValue,
               divineValue,
+              stackSize,
+              totalChaosValue,
+              totalDivineValue,
+              ultimatumQuantity,
+              ultimatumChaosValue,
+              ultimatumDivineValue,
               icon:
                 'https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvRGl2aW5hdGlvbi9JbnZlbnRvcnlJY29uIiwidyI6MSwiaCI6MSwic2NhbGUiOjF9XQ/f34bf8c135/InventoryIcon.png',
               listingCount: 0,
@@ -264,6 +278,12 @@ export function deduplicateAndNormalize(
       category,
       chaosValue,
       divineValue,
+      stackSize: 1,
+      totalChaosValue: chaosValue,
+      totalDivineValue: divineValue,
+      ultimatumQuantity: 1,
+      ultimatumChaosValue: chaosValue,
+      ultimatumDivineValue: divineValue,
       icon: line.icon || '',
       listingCount: line.listingCount ?? line.count ?? 0,
       variantCount: variants.length,

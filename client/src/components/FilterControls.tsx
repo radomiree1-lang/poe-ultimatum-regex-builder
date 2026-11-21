@@ -14,7 +14,7 @@ import {
   Flame,
   ScrollText,
 } from 'lucide-react';
-import { UniqueCategory } from '../services/types.js';
+import { UniqueCategory, PriceMode } from '../services/types.js';
 
 interface FilterControlsProps {
   search: string;
@@ -27,6 +27,8 @@ interface FilterControlsProps {
   onMaxPriceChange: (val: string) => void;
   priceCurrency: 'chaos' | 'divine';
   onCurrencyChange: (curr: 'chaos' | 'divine') => void;
+  priceMode: PriceMode;
+  onPriceModeChange: (mode: PriceMode) => void;
   replicaFilter: 'all' | 'no-replicas' | 'replicas-only';
   onReplicaFilterChange: (val: 'all' | 'no-replicas' | 'replicas-only') => void;
   ultimatumOnly: boolean;
@@ -66,6 +68,8 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
   onMaxPriceChange,
   priceCurrency,
   onCurrencyChange,
+  priceMode,
+  onPriceModeChange,
   replicaFilter,
   onReplicaFilterChange,
   ultimatumOnly,
@@ -289,6 +293,49 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
               }`}
             >
               Divine (div)
+            </button>
+          </div>
+
+          {/* Price Basis Toggle (Total Stack vs Ultimatum vs Unit) */}
+          <div className="flex items-center gap-1 bg-arpg-darkest p-0.5 rounded border border-arpg-border text-[11px]">
+            <span
+              className="text-arpg-muted px-1.5 text-[10px] font-medium"
+              title="Price basis for Divination Cards: Full stack total price, Ultimatum sacrifice count, or single card unit price"
+            >
+              Basis:
+            </span>
+            <button
+              onClick={() => onPriceModeChange('total')}
+              className={`px-2 py-0.5 rounded font-medium transition-all cursor-pointer ${
+                priceMode === 'total'
+                  ? 'bg-cyan-950/70 text-cyan-300 font-bold border border-cyan-600/50 shadow-sm'
+                  : 'text-arpg-muted hover:text-white'
+              }`}
+              title="Calculates card values by full stack/set total price (e.g. 5x for A Dusty Memory, 8x for The Doctor)"
+            >
+              Total Stack (xN) ★
+            </button>
+            <button
+              onClick={() => onPriceModeChange('ultimatum')}
+              className={`px-2 py-0.5 rounded font-medium transition-all cursor-pointer ${
+                priceMode === 'ultimatum'
+                  ? 'bg-amber-950/70 text-amber-300 font-bold border border-amber-600/50 shadow-sm'
+                  : 'text-arpg-muted hover:text-white'
+              }`}
+              title="Calculates card values by the exact count required in an Inscribed Ultimatum (~50% of stack size)"
+            >
+              Ultimatum (~50%)
+            </button>
+            <button
+              onClick={() => onPriceModeChange('unit')}
+              className={`px-2 py-0.5 rounded font-medium transition-all cursor-pointer ${
+                priceMode === 'unit'
+                  ? 'bg-arpg-surface text-arpg-text font-bold border border-arpg-border'
+                  : 'text-arpg-muted hover:text-white'
+              }`}
+              title="Calculates card values by single card unit price (1x)"
+            >
+              Unit (1x)
             </button>
           </div>
         </div>

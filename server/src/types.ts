@@ -34,6 +34,12 @@ export interface UniqueItem {
   category: UniqueCategory;
   chaosValue: number;
   divineValue: number;
+  stackSize?: number;
+  totalChaosValue?: number;
+  totalDivineValue?: number;
+  ultimatumQuantity?: number;
+  ultimatumChaosValue?: number;
+  ultimatumDivineValue?: number;
   icon: string;
   listingCount: number;
   variantCount: number;

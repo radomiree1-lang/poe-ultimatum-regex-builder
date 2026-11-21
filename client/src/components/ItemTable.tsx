@@ -5,7 +5,7 @@ import {
   ArrowDown,
   HelpCircle,
 } from 'lucide-react';
-import { UniqueCategory, UniqueItem } from '../services/types.js';
+import { UniqueCategory, UniqueItem, PriceMode } from '../services/types.js';
 
 export type SortField = 'name' | 'baseType' | 'category' | 'chaosValue' | 'divineValue' | 'listingCount';
 export type SortDirection = 'asc' | 'desc';
@@ -17,6 +17,7 @@ interface ItemTableProps {
   sortField: SortField;
   sortDirection: SortDirection;
   onSort: (field: SortField) => void;
+  priceMode: PriceMode;
   page: number;
   pageSize: number;
   onPageChange: (page: number) => void;
@@ -41,6 +42,7 @@ export const ItemTable: React.FC<ItemTableProps> = ({
   sortField,
   sortDirection,
   onSort,
+  priceMode,
   page,
   pageSize,
   onPageChange,
@@ -138,18 +140,30 @@ export const ItemTable: React.FC<ItemTableProps> = ({
               <th
                 onClick={() => onSort('chaosValue')}
                 className="p-3 text-right cursor-pointer hover:text-poe-unique-bright transition-colors"
+                title={`Sorted by ${priceMode === 'total' ? 'Total Set / Stack Price' : priceMode === 'ultimatum' ? 'Ultimatum Sacrifice Price' : 'Unit Price (1x)'}`}
               >
-                <span>Chaos Value</span>
-                {renderSortIcon('chaosValue')}
+                <div className="flex items-center justify-end gap-1">
+                  <span>Chaos Value</span>
+                  <span className="text-[10px] font-normal text-cyan-400">
+                    ({priceMode === 'total' ? 'Total' : priceMode === 'ultimatum' ? 'Ulti' : '1x'})
+                  </span>
+                  {renderSortIcon('chaosValue')}
+                </div>
               </th>
 
               {/* Divine Value */}
               <th
                 onClick={() => onSort('divineValue')}
                 className="p-3 text-right cursor-pointer hover:text-poe-unique-bright transition-colors hidden md:table-cell"
+                title={`Sorted by ${priceMode === 'total' ? 'Total Set / Stack Price' : priceMode === 'ultimatum' ? 'Ultimatum Sacrifice Price' : 'Unit Price (1x)'}`}
               >
-                <span>Divine Value</span>
-                {renderSortIcon('divineValue')}
+                <div className="flex items-center justify-end gap-1">
+                  <span>Divine Value</span>
+                  <span className="text-[10px] font-normal text-cyan-400">
+                    ({priceMode === 'total' ? 'Total' : priceMode === 'ultimatum' ? 'Ulti' : '1x'})
+                  </span>
+                  {renderSortIcon('divineValue')}
+                </div>
               </th>
 
               {/* Listings */}
@@ -267,20 +281,85 @@ export const ItemTable: React.FC<ItemTableProps> = ({
 
                     {/* Chaos Value */}
                     <td className="p-3 text-right">
-                      <div className="font-mono font-bold text-amber-300 flex items-center justify-end gap-1">
-                        <span>{item.chaosValue.toLocaleString()}</span>
-                        <span className="text-[10px] text-poe-chaos font-normal">c</span>
-                      </div>
+                      {isCard ? (
+                        <div className="flex flex-col items-end gap-0.5">
+                          <div className="font-mono font-bold text-amber-300 flex items-center justify-end gap-1.5">
+                            <span>
+                              {priceMode === 'total'
+                                ? (item.totalChaosValue ?? Math.round(item.chaosValue * (item.stackSize || 1) * 10) / 10).toLocaleString()
+                                : priceMode === 'ultimatum'
+                                ? (item.ultimatumChaosValue ?? Math.round(item.chaosValue * (item.ultimatumQuantity || 1) * 10) / 10).toLocaleString()
+                                : item.chaosValue.toLocaleString()}
+                            </span>
+                            <span className="text-[10px] text-poe-chaos font-normal">c</span>
+                            <span
+                              className={`px-1 py-0.2 rounded text-[10px] font-semibold ${
+                                priceMode === 'total'
+                                  ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-800/60'
+                                  : priceMode === 'ultimatum'
+                                  ? 'bg-amber-950/80 text-amber-300 border border-amber-800/60'
+                                  : 'bg-arpg-darkest text-arpg-muted border border-arpg-border'
+                              }`}
+                            >
+                              {priceMode === 'total'
+                                ? `${item.stackSize || 1}x set`
+                                : priceMode === 'ultimatum'
+                                ? `${item.ultimatumQuantity || 1}x ulti`
+                                : '1x ea'}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-arpg-muted flex items-center gap-1 font-mono">
+                            {priceMode === 'total' ? (
+                              <span>1x: {item.chaosValue}c · Ulti: ~{item.ultimatumChaosValue ?? Math.round(item.chaosValue * (item.ultimatumQuantity || 1) * 10) / 10}c</span>
+                            ) : priceMode === 'ultimatum' ? (
+                              <span>1x: {item.chaosValue}c · Set: {item.totalChaosValue ?? Math.round(item.chaosValue * (item.stackSize || 1) * 10) / 10}c</span>
+                            ) : (
+                              <span>Set ({item.stackSize || 1}x): {item.totalChaosValue ?? Math.round(item.chaosValue * (item.stackSize || 1) * 10) / 10}c</span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="font-mono font-bold text-amber-300 flex items-center justify-end gap-1">
+                          <span>{item.chaosValue.toLocaleString()}</span>
+                          <span className="text-[10px] text-poe-chaos font-normal">c</span>
+                        </div>
+                      )}
                     </td>
 
                     {/* Divine Value */}
                     <td className="p-3 text-right hidden md:table-cell">
-                      <div className="font-mono text-amber-200/90 flex items-center justify-end gap-1">
-                        <span>
-                          {item.divineValue > 0 ? item.divineValue.toFixed(2) : '< 0.01'}
-                        </span>
-                        <span className="text-[10px] text-poe-divine font-normal">div</span>
-                      </div>
+                      {isCard ? (
+                        <div className="flex flex-col items-end gap-0.5">
+                          <div className="font-mono text-amber-200/90 flex items-center justify-end gap-1">
+                            <span>
+                              {(() => {
+                                const val =
+                                  priceMode === 'total'
+                                    ? item.totalDivineValue ?? Math.round(item.divineValue * (item.stackSize || 1) * 100) / 100
+                                    : priceMode === 'ultimatum'
+                                    ? item.ultimatumDivineValue ?? Math.round(item.divineValue * (item.ultimatumQuantity || 1) * 100) / 100
+                                    : item.divineValue;
+                                return val > 0 ? val.toFixed(2) : '< 0.01';
+                              })()}
+                            </span>
+                            <span className="text-[10px] text-poe-divine font-normal">div</span>
+                          </div>
+                          <div className="text-[10px] text-arpg-muted font-mono">
+                            {priceMode === 'unit' ? (
+                              <span>Set: {item.totalDivineValue && item.totalDivineValue > 0 ? `${item.totalDivineValue.toFixed(2)}d` : '<0.01d'}</span>
+                            ) : (
+                              <span>1x: {item.divineValue > 0 ? `${item.divineValue.toFixed(2)}d` : '<0.01d'}</span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="font-mono text-amber-200/90 flex items-center justify-end gap-1">
+                          <span>
+                            {item.divineValue > 0 ? item.divineValue.toFixed(2) : '< 0.01'}
+                          </span>
+                          <span className="text-[10px] text-poe-divine font-normal">div</span>
+                        </div>
+                      )}
                     </td>
 
                     {/* Listing Count */}
