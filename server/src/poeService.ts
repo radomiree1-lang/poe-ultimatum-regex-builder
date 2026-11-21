@@ -1,3 +1,4 @@
+import { CORE_ULTIMATUM_UNIQUES } from './data/coreUniques.js';
 import {
   LeagueInfo,
   PoeNinjaLine,
@@ -5,6 +6,20 @@ import {
   UniqueCategory,
   UniqueItem,
 } from './types.js';
+
+const ULTIMATUM_CORE_SET = new Set(
+  CORE_ULTIMATUM_UNIQUES.map((n) => n.toLowerCase())
+);
+
+export function isItemInUltimatumPool(
+  name: string,
+  category: UniqueCategory,
+  isReplica: boolean
+): boolean {
+  if (isReplica) return false;
+  if (category === 'Tincture') return false;
+  return ULTIMATUM_CORE_SET.has(name.toLowerCase());
+}
 
 const CATEGORY_MAP: Record<string, UniqueCategory> = {
   UniqueWeapon: 'Weapon',
@@ -166,6 +181,7 @@ export function deduplicateAndNormalize(
     const category = lowest.category;
 
     const isReplica = name.startsWith('Replica ');
+    const isUltimatumPool = isItemInUltimatumPool(name, category, isReplica);
 
     // Normalize chaosValue and divineValue
     const chaosValue = Math.round(line.chaosValue * 10) / 10;
@@ -190,6 +206,7 @@ export function deduplicateAndNormalize(
       listingCount: line.listingCount ?? line.count ?? 0,
       variantCount: variants.length,
       isReplica,
+      isUltimatumPool,
     });
   }
 

@@ -43,6 +43,8 @@ export const App: React.FC = () => {
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [priceCurrency, setPriceCurrency] = useState<'chaos' | 'divine'>('chaos');
   const [replicaFilter, setReplicaFilter] = useState<'all' | 'no-replicas' | 'replicas-only'>('all');
+  // Ultimatum Pool Only toggle (Defaults to true per user request!)
+  const [ultimatumOnly, setUltimatumOnly] = useState<boolean>(true);
 
   // Sorting state - DEFAULT ASCENDING BY CHAOS PRICE
   const [sortField, setSortField] = useState<SortField>('chaosValue');
@@ -131,12 +133,13 @@ export const App: React.FC = () => {
 
   // Category counts
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { All: items.length };
-    for (const item of items) {
+    const baseItems = ultimatumOnly ? items.filter((i) => i.isUltimatumPool) : items;
+    const counts: Record<string, number> = { All: baseItems.length };
+    for (const item of baseItems) {
       counts[item.category] = (counts[item.category] || 0) + 1;
     }
     return counts;
-  }, [items]);
+  }, [items, ultimatumOnly]);
 
   // Filtered & Sorted items
   const filteredItems = useMemo(() => {
@@ -145,6 +148,11 @@ export const App: React.FC = () => {
     const maxVal = maxPrice !== '' ? parseFloat(maxPrice) : null;
 
     return items.filter((item) => {
+      // Inscribed Ultimatum pool filter
+      if (ultimatumOnly && !item.isUltimatumPool) {
+        return false;
+      }
+
       // Category filter
       if (selectedCategory !== 'All' && item.category !== selectedCategory) {
         return false;
@@ -168,7 +176,7 @@ export const App: React.FC = () => {
 
       return true;
     });
-  }, [items, search, selectedCategory, minPrice, maxPrice, priceCurrency, replicaFilter]);
+  }, [items, ultimatumOnly, search, selectedCategory, minPrice, maxPrice, priceCurrency, replicaFilter]);
 
   // Sort items
   const sortedItems = useMemo(() => {
@@ -270,6 +278,7 @@ export const App: React.FC = () => {
     setMinPrice('');
     setMaxPrice('');
     setReplicaFilter('all');
+    setUltimatumOnly(true);
     setPage(1);
     showToast('Filters reset.');
   };
@@ -279,7 +288,6 @@ export const App: React.FC = () => {
       setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortField(field);
-      // Default to asc for prices/names
       setSortDirection('asc');
     }
   };
@@ -374,6 +382,16 @@ export const App: React.FC = () => {
               onReplicaFilterChange={(val) => {
                 setReplicaFilter(val);
                 setPage(1);
+              }}
+              ultimatumOnly={ultimatumOnly}
+              onToggleUltimatumOnly={(val) => {
+                setUltimatumOnly(val);
+                setPage(1);
+                showToast(
+                  val
+                    ? 'Filtered to Inscribed Ultimatum drop pool only.'
+                    : 'Showing all PoE 1 unique items.'
+                );
               }}
               categoryCounts={categoryCounts}
               filteredCount={filteredItems.length}

@@ -108,7 +108,7 @@ describe('deduplicateAndNormalize', () => {
     expect(result[0].variantCount).toBe(3);
   });
 
-  it('identifies Replica items with isReplica = true', () => {
+  it('identifies Replica items with isReplica = true and isUltimatumPool = false', () => {
     const rawItems: Array<{ line: PoeNinjaLine; category: UniqueCategory }> = [
       {
         line: {
@@ -139,7 +139,9 @@ describe('deduplicateAndNormalize', () => {
     const normal = result.find((i) => i.name === 'Headhunter');
 
     expect(replica?.isReplica).toBe(true);
+    expect(replica?.isUltimatumPool).toBe(false);
     expect(normal?.isReplica).toBe(false);
+    expect(normal?.isUltimatumPool).toBe(true);
   });
 
   it('sorts ascending by chaosValue by default', () => {

@@ -88,6 +88,7 @@ describe('generateRegexChunks', () => {
       listingCount: 50,
       variantCount: 1,
       isReplica: false,
+      isUltimatumPool: true,
     },
     {
       id: 'goldrim-armour',
@@ -100,6 +101,7 @@ describe('generateRegexChunks', () => {
       listingCount: 40,
       variantCount: 1,
       isReplica: false,
+      isUltimatumPool: true,
     },
     {
       id: 'kaoms-sign-accessory',
@@ -112,6 +114,7 @@ describe('generateRegexChunks', () => {
       listingCount: 30,
       variantCount: 1,
       isReplica: false,
+      isUltimatumPool: true,
     },
   ];
 
@@ -175,6 +178,7 @@ describe('generateRegexChunks', () => {
         listingCount: 10,
         variantCount: 1,
         isReplica: false,
+        isUltimatumPool: true,
       });
     }
 

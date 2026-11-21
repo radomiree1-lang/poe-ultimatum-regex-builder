@@ -37,6 +37,7 @@ export interface UniqueItem {
   listingCount: number;
   variantCount: number;
   isReplica: boolean;
+  isUltimatumPool: boolean;
 }
 
 export interface CacheEntry<T> {

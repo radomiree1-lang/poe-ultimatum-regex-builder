@@ -11,6 +11,7 @@ import {
   CheckSquare,
   Square,
   DollarSign,
+  Flame,
 } from 'lucide-react';
 import { UniqueCategory } from '../services/types.js';
 
@@ -27,6 +28,8 @@ interface FilterControlsProps {
   onCurrencyChange: (curr: 'chaos' | 'divine') => void;
   replicaFilter: 'all' | 'no-replicas' | 'replicas-only';
   onReplicaFilterChange: (val: 'all' | 'no-replicas' | 'replicas-only') => void;
+  ultimatumOnly: boolean;
+  onToggleUltimatumOnly: (val: boolean) => void;
   categoryCounts: Record<string, number>;
   filteredCount: number;
   totalCount: number;
@@ -63,6 +66,8 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
   onCurrencyChange,
   replicaFilter,
   onReplicaFilterChange,
+  ultimatumOnly,
+  onToggleUltimatumOnly,
   categoryCounts,
   filteredCount,
   allFilteredSelected,
@@ -72,8 +77,40 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
 }) => {
   return (
     <div className="bg-arpg-panel rounded-xl border border-arpg-border p-4 space-y-4 shadow-lg">
-      {/* Top row: Instant Search + Bulk Selection Actions */}
+      {/* Top row: Ultimatum Pool Switch + Search + Bulk Actions */}
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        {/* Ultimatum Pool Mode Switch */}
+        <div className="flex items-center gap-1.5 bg-arpg-darkest p-1 rounded-lg border border-arpg-border shrink-0 text-xs">
+          <div className="flex items-center gap-1 px-2 text-arpg-muted font-medium">
+            <Flame className="w-3.5 h-3.5 text-poe-unique-bright animate-pulse" />
+            <span>Pool:</span>
+          </div>
+
+          <button
+            onClick={() => onToggleUltimatumOnly(true)}
+            className={`px-3 py-1 rounded font-semibold transition-all cursor-pointer ${
+              ultimatumOnly
+                ? 'bg-gradient-to-r from-amber-700 via-poe-unique to-poe-unique-bright text-white shadow-glow-orange'
+                : 'text-arpg-muted hover:text-white'
+            }`}
+            title="Shows only core global drop uniques that can roll in Inscribed Ultimatums (excludes boss drops, replicas, vendor uniques)"
+          >
+            Ultimatum Pool Only ★
+          </button>
+
+          <button
+            onClick={() => onToggleUltimatumOnly(false)}
+            className={`px-3 py-1 rounded font-medium transition-all cursor-pointer ${
+              !ultimatumOnly
+                ? 'bg-arpg-surface text-poe-gold-light border border-poe-gold/40'
+                : 'text-arpg-muted hover:text-white'
+            }`}
+            title="Shows all unique items in PoE 1"
+          >
+            All Uniques
+          </button>
+        </div>
+
         {/* Search input */}
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-arpg-muted absolute left-3 top-1/2 -translate-y-1/2" />
@@ -160,40 +197,42 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
           })}
         </div>
 
-        {/* Replica Filter */}
-        <div className="flex items-center gap-1 bg-arpg-darkest p-1 rounded-lg border border-arpg-border text-xs">
-          <span className="text-arpg-muted px-2 text-[11px]">Replicas:</span>
-          <button
-            onClick={() => onReplicaFilterChange('all')}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all cursor-pointer ${
-              replicaFilter === 'all'
-                ? 'bg-arpg-surface text-poe-gold-light'
-                : 'text-arpg-muted hover:text-white'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => onReplicaFilterChange('no-replicas')}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all cursor-pointer ${
-              replicaFilter === 'no-replicas'
-                ? 'bg-arpg-surface text-poe-gold-light'
-                : 'text-arpg-muted hover:text-white'
-            }`}
-          >
-            Exclude
-          </button>
-          <button
-            onClick={() => onReplicaFilterChange('replicas-only')}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all cursor-pointer ${
-              replicaFilter === 'replicas-only'
-                ? 'bg-arpg-surface text-poe-gold-light'
-                : 'text-arpg-muted hover:text-white'
-            }`}
-          >
-            Only
-          </button>
-        </div>
+        {/* Replica Filter (only shown if not ultimatumOnly) */}
+        {!ultimatumOnly && (
+          <div className="flex items-center gap-1 bg-arpg-darkest p-1 rounded-lg border border-arpg-border text-xs">
+            <span className="text-arpg-muted px-2 text-[11px]">Replicas:</span>
+            <button
+              onClick={() => onReplicaFilterChange('all')}
+              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all cursor-pointer ${
+                replicaFilter === 'all'
+                  ? 'bg-arpg-surface text-poe-gold-light'
+                  : 'text-arpg-muted hover:text-white'
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => onReplicaFilterChange('no-replicas')}
+              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all cursor-pointer ${
+                replicaFilter === 'no-replicas'
+                  ? 'bg-arpg-surface text-poe-gold-light'
+                  : 'text-arpg-muted hover:text-white'
+              }`}
+            >
+              Exclude
+            </button>
+            <button
+              onClick={() => onReplicaFilterChange('replicas-only')}
+              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all cursor-pointer ${
+                replicaFilter === 'replicas-only'
+                  ? 'bg-arpg-surface text-poe-gold-light'
+                  : 'text-arpg-muted hover:text-white'
+              }`}
+            >
+              Only
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Bottom row: Price Range Filter & Quick Presets */}
