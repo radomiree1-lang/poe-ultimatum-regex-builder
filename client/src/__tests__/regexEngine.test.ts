@@ -163,6 +163,46 @@ describe('generateRegexChunks', () => {
     expect(chunks[0].quotedString).toBe('"ce: .*(tabula rasa)"');
   });
 
+  it('generates sacrifice regex for Divination Cards even in Reward mode because card duplications list the card in Requires Sacrifice', () => {
+    const cardItems: UniqueItem[] = [
+      {
+        id: 'the-jester-card',
+        name: 'The Jester',
+        baseType: 'Divination Card',
+        category: 'Divination Card',
+        chaosValue: 1,
+        divineValue: 0.01,
+        icon: '',
+        listingCount: 10,
+        variantCount: 1,
+        isReplica: false,
+        isUltimatumPool: true,
+      },
+      {
+        id: 'a-dusty-memory-card',
+        name: 'A Dusty Memory',
+        baseType: 'Divination Card',
+        category: 'Divination Card',
+        chaosValue: 5,
+        divineValue: 0.02,
+        icon: '',
+        listingCount: 20,
+        variantCount: 1,
+        isReplica: false,
+        isUltimatumPool: true,
+      },
+    ];
+
+    const chunks = generateRegexChunks(cardItems, cardItems, {
+      matchMode: 'reward',
+      prefixMode: 'standard',
+      compressionMode: 'full',
+    });
+
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0].quotedString).toBe('"sacrifice: .*(the jester|a dusty memory)"');
+  });
+
   it('splits chunks when exceeding the 250 character limit', () => {
     // Create 30 mock items with 20-char names
     const longItemList: UniqueItem[] = [];
@@ -226,6 +266,31 @@ Take this item to the Trialmaster's Altar in the Ultimatum`;
     expect(result.matched).toBe(true);
     expect(result.lineType).toBe('sacrifice');
     expect(result.matchedLineText).toContain("Requires Sacrifice: Kaom's Sign");
+  });
+
+  it('matches Inscribed Ultimatum tooltip with card duplication "Reward: Doubles sacrificed Divination Cards"', () => {
+    const userTooltip = `Inscribed Ultimatum
+Challenge: Survive
+Area Level: 83
+Requires Sacrifice: A Dusty Memory x3
+Reward: Doubles sacrificed Divination Cards
+120% more Monster Life`;
+
+    const chunks = [
+      {
+        index: 1,
+        quotedString: '"sacrifice: .*(the jester|a dusty memory)"',
+        rawPattern: 'sacrifice: .*(the jester|a dusty memory)',
+        charCount: 42,
+        itemCount: 2,
+        itemNames: ['The Jester', 'A Dusty Memory'],
+      },
+    ];
+
+    const result = testUltimatumRegex(userTooltip, chunks);
+    expect(result.matched).toBe(true);
+    expect(result.lineType).toBe('sacrifice');
+    expect(result.matchedLineText).toBe('Requires Sacrifice: A Dusty Memory x3');
   });
 
   it('does NOT match Reward line when Kaom\'s Sign is in Sacrifice mode only', () => {

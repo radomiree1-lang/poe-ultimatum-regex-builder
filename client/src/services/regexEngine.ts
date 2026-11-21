@@ -141,6 +141,11 @@ export function getPrefixAndSuffix(
 
 /**
  * Generates regex chunks <= 250 characters for selected items.
+ * Intelligently handles Divination Cards:
+ * In PoE 1 Inscribed Ultimatums, card rewards are always "Doubles sacrificed Divination Cards",
+ * so the specific card name is ALWAYS listed on the "Requires Sacrifice: <Card Name> x<Count>" line.
+ * When Divination Cards are selected in "Reward" mode, they automatically target the sacrifice line
+ * so they properly highlight the card duplication Inscribed Ultimatum in stash!
  */
 export function generateRegexChunks(
   selectedItems: UniqueItem[],
@@ -152,7 +157,6 @@ export function generateRegexChunks(
   }
 
   const { matchMode, prefixMode, compressionMode, maxCharsPerChunk = 250 } = options;
-  const { prefix, suffix } = getPrefixAndSuffix(matchMode, prefixMode);
 
   // Set of unselected item names
   const selectedNameSet = new Set(selectedItems.map((i) => i.name));
@@ -163,44 +167,104 @@ export function generateRegexChunks(
     }
   }
 
-  // Compute tokens for each selected item
-  const itemTokens: Array<{ name: string; token: string }> = selectedItems.map(
-    (item) => {
-      let token: string;
-      if (compressionMode === 'short') {
-        token = findShortestUniqueSubstring(item.name, unselectedNames);
-      } else {
-        token = escapePoERegex(item.name);
-      }
-      return { name: item.name, token };
+  const getToken = (item: UniqueItem) => {
+    if (compressionMode === 'short') {
+      return findShortestUniqueSubstring(item.name, unselectedNames);
     }
-  );
+    return escapePoERegex(item.name);
+  };
 
-  // Deduplicate tokens (in case two selected items yielded identical substrings or names)
-  const uniqueTokens: Array<{ name: string; token: string }> = [];
-  const seenTokens = new Set<string>();
-  for (const it of itemTokens) {
-    if (!seenTokens.has(it.token)) {
-      seenTokens.add(it.token);
-      uniqueTokens.push(it);
+  const uniqueItems = selectedItems.filter((i) => i.category !== 'Divination Card');
+  const cardItems = selectedItems.filter((i) => i.category === 'Divination Card');
+
+  interface ItemGroup {
+    mode: MatchMode;
+    items: UniqueItem[];
+  }
+
+  const groups: ItemGroup[] = [];
+
+  if (matchMode === 'either') {
+    groups.push({
+      mode: 'either',
+      items: selectedItems,
+    });
+  } else if (matchMode === 'sacrifice') {
+    groups.push({
+      mode: 'sacrifice',
+      items: selectedItems,
+    });
+  } else {
+    // matchMode === 'reward'
+    // In PoE 1, unique item rewards appear on "Reward: <Item>", so they use 'reward'
+    if (uniqueItems.length > 0) {
+      groups.push({
+        mode: 'reward',
+        items: uniqueItems,
+      });
+    }
+    // In PoE 1, Divination Card duplications ALWAYS list the card on "Requires Sacrifice: <Card> x<N>"
+    // while the Reward line says "Doubles sacrificed Divination Cards".
+    // Therefore, card regexes MUST target 'sacrifice' to highlight in stash!
+    if (cardItems.length > 0) {
+      groups.push({
+        mode: 'sacrifice',
+        items: cardItems,
+      });
     }
   }
 
-  // Fixed overhead: 2 double quotes + prefix + suffix
-  const fixedOverhead = 2 + prefix.length + suffix.length;
-  const maxPayload = maxCharsPerChunk - fixedOverhead;
-
   const chunks: RegexChunk[] = [];
-  let currentTokens: string[] = [];
-  let currentItems: string[] = [];
-  let currentPayloadLen = 0;
 
-  for (const { name, token } of uniqueTokens) {
-    // If adding this token would fit in current chunk
-    const additionLen = currentTokens.length === 0 ? token.length : 1 + token.length; // +1 for '|'
+  for (const group of groups) {
+    const { prefix, suffix } = getPrefixAndSuffix(group.mode, prefixMode);
+    const fixedOverhead = 2 + prefix.length + suffix.length;
+    const maxPayload = maxCharsPerChunk - fixedOverhead;
 
-    if (currentTokens.length > 0 && currentPayloadLen + additionLen > maxPayload) {
-      // Seal current chunk
+    // Deduplicate tokens
+    const uniqueTokens: Array<{ name: string; token: string }> = [];
+    const seenTokens = new Set<string>();
+
+    for (const item of group.items) {
+      const token = getToken(item);
+      if (!seenTokens.has(token)) {
+        seenTokens.add(token);
+        uniqueTokens.push({ name: item.name, token });
+      }
+    }
+
+    let currentTokens: string[] = [];
+    let currentItems: string[] = [];
+    let currentPayloadLen = 0;
+
+    for (const { name, token } of uniqueTokens) {
+      const additionLen = currentTokens.length === 0 ? token.length : 1 + token.length;
+
+      if (currentTokens.length > 0 && currentPayloadLen + additionLen > maxPayload) {
+        const innerPattern = currentTokens.join('|');
+        const rawPattern = `${prefix}${innerPattern}${suffix}`;
+        const quotedString = `"${rawPattern}"`;
+
+        chunks.push({
+          index: chunks.length + 1,
+          quotedString,
+          rawPattern,
+          charCount: quotedString.length,
+          itemCount: currentItems.length,
+          itemNames: [...currentItems],
+        });
+
+        currentTokens = [token];
+        currentItems = [name];
+        currentPayloadLen = token.length;
+      } else {
+        currentTokens.push(token);
+        currentItems.push(name);
+        currentPayloadLen += additionLen;
+      }
+    }
+
+    if (currentTokens.length > 0) {
       const innerPattern = currentTokens.join('|');
       const rawPattern = `${prefix}${innerPattern}${suffix}`;
       const quotedString = `"${rawPattern}"`;
@@ -213,32 +277,7 @@ export function generateRegexChunks(
         itemCount: currentItems.length,
         itemNames: [...currentItems],
       });
-
-      // Reset for next chunk
-      currentTokens = [token];
-      currentItems = [name];
-      currentPayloadLen = token.length;
-    } else {
-      currentTokens.push(token);
-      currentItems.push(name);
-      currentPayloadLen += additionLen;
     }
-  }
-
-  // Push final chunk
-  if (currentTokens.length > 0) {
-    const innerPattern = currentTokens.join('|');
-    const rawPattern = `${prefix}${innerPattern}${suffix}`;
-    const quotedString = `"${rawPattern}"`;
-
-    chunks.push({
-      index: chunks.length + 1,
-      quotedString,
-      rawPattern,
-      charCount: quotedString.length,
-      itemCount: currentItems.length,
-      itemNames: [...currentItems],
-    });
   }
 
   return chunks;

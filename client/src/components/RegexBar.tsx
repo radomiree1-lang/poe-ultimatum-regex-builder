@@ -18,6 +18,7 @@ import {
 interface RegexBarProps {
   chunks: RegexChunk[];
   selectedCount: number;
+  hasSelectedCards?: boolean;
   matchMode: MatchMode;
   onChangeMatchMode: (mode: MatchMode) => void;
   prefixMode: PrefixMode;
@@ -31,6 +32,7 @@ interface RegexBarProps {
 export const RegexBar: React.FC<RegexBarProps> = ({
   chunks,
   selectedCount,
+  hasSelectedCards = false,
   matchMode,
   onChangeMatchMode,
   prefixMode,
@@ -196,12 +198,35 @@ export const RegexBar: React.FC<RegexBarProps> = ({
           </div>
         </div>
 
+        {/* Divination Card Information Alert if cards are selected */}
+        {hasSelectedCards && (
+          <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-cyan-950/40 border border-cyan-700/60 text-xs text-cyan-200">
+            <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <span className="font-semibold text-cyan-300">
+                PoE 1 Inscribed Ultimatum Card Rule:
+              </span>{' '}
+              <span>
+                Card Ultimatums always duplicate cards, so in-game the card name is listed under{' '}
+                <code className="bg-cyan-950 px-1 py-0.2 rounded text-cyan-300 font-mono text-[11px]">
+                  Requires Sacrifice: &lt;Card&gt; x&lt;N&gt;
+                </code>{' '}
+                and the reward line is literally{' '}
+                <code className="bg-cyan-950 px-1 py-0.2 rounded text-cyan-300 font-mono text-[11px]">
+                  Reward: Doubles sacrificed Divination Cards
+                </code>
+                . The regex automatically matches the <strong>Sacrifice</strong> line so your cards are highlighted in your stash!
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Output Regex Display */}
         {selectedCount === 0 ? (
           <div className="bg-arpg-darkest/70 border border-dashed border-arpg-border rounded-lg p-4 text-center">
             <p className="text-arpg-muted text-sm flex items-center justify-center gap-2">
               <FileCode className="w-4 h-4 text-arpg-muted" />
-              <span>Select unique items below to generate your Inscribed Ultimatum stash search regex.</span>
+              <span>Select unique items or divination cards below to generate your Inscribed Ultimatum stash search regex.</span>
             </p>
           </div>
         ) : (

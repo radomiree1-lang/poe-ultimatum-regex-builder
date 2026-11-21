@@ -315,6 +315,7 @@ export const App: React.FC = () => {
       <RegexBar
         chunks={chunks}
         selectedCount={selectedItemIds.size}
+        hasSelectedCards={selectedItems.some((i) => i.category === 'Divination Card')}
         matchMode={matchMode}
         onChangeMatchMode={setMatchMode}
         prefixMode={prefixMode}
