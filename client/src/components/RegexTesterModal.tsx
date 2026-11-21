@@ -97,6 +97,26 @@ Protect the Altar for 8 Waves
 Take this item to the Trialmaster's Altar in the Ultimatum`,
     notes: 'Requires Sacrifice has Tabula Rasa.',
   },
+  {
+    id: 'dusty-memory-dupe',
+    title: 'Card Dupe: A Dusty Memory x3',
+    text: `Inscribed Ultimatum
+Challenge: Survive
+Area Level: 83
+Requires Sacrifice: A Dusty Memory x3
+Reward: Doubles sacrificed Divination Cards
+Choking Miasma
+Raging Dead III
+Stalking Ruin IV
+Razor Dance
+Totem of Costly Potency
+Treacherous Auras
+Resistant Monsters
+Dexterous Monsters
+30% increased Monster Damage
+120% more Monster Life`,
+    notes: 'PoE 1 card duplication: Card name is in "Requires Sacrifice: A Dusty Memory x3", Reward is "Doubles sacrificed Divination Cards".',
+  },
 ];
 
 export const RegexTesterModal: React.FC<RegexTesterModalProps> = ({
