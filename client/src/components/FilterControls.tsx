@@ -12,6 +12,7 @@ import {
   Square,
   DollarSign,
   Flame,
+  ScrollText,
 } from 'lucide-react';
 import { UniqueCategory } from '../services/types.js';
 
@@ -45,6 +46,7 @@ const CATEGORIES: Array<{
   icon: React.ReactNode;
 }> = [
   { id: 'All', label: 'All', icon: <Sparkles className="w-3.5 h-3.5" /> },
+  { id: 'Divination Card', label: 'Cards', icon: <ScrollText className="w-3.5 h-3.5" /> },
   { id: 'Weapon', label: 'Weapons', icon: <Sword className="w-3.5 h-3.5" /> },
   { id: 'Armour', label: 'Armour', icon: <Shield className="w-3.5 h-3.5" /> },
   { id: 'Accessory', label: 'Accessories', icon: <CircleDot className="w-3.5 h-3.5" /> },
@@ -93,7 +95,7 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
                 ? 'bg-gradient-to-r from-amber-700 via-poe-unique to-poe-unique-bright text-white shadow-glow-orange'
                 : 'text-arpg-muted hover:text-white'
             }`}
-            title="Shows only core global drop uniques that can roll in Inscribed Ultimatums (excludes boss drops, replicas, vendor uniques)"
+            title="Shows only items that can roll in Inscribed Ultimatums (includes Divination Cards and Core drop uniques; excludes boss drops and replicas)"
           >
             Ultimatum Pool Only ★
           </button>
@@ -105,9 +107,9 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
                 ? 'bg-arpg-surface text-poe-gold-light border border-poe-gold/40'
                 : 'text-arpg-muted hover:text-white'
             }`}
-            title="Shows all unique items in PoE 1"
+            title="Shows all unique items and divination cards in PoE 1"
           >
-            All Uniques
+            All Items
           </button>
         </div>
 
@@ -118,7 +120,7 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
             type="text"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search by unique item name or base type (e.g. Tabula Rasa, Leather Belt, Opal Ring)..."
+            placeholder="Search by name or base type (e.g. The Doctor, The Apothecary, Tabula Rasa, Mageblood)..."
             className="w-full pl-9 pr-9 py-2 rounded-lg arpg-input text-sm placeholder:text-arpg-muted/70"
           />
           {search && (

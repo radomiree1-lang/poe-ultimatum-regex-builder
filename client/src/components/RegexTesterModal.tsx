@@ -26,6 +26,35 @@ interface PresetTooltip {
 
 const PRESET_TOOLTIPS: PresetTooltip[] = [
   {
+    id: 'doctor-sac',
+    title: 'Sacrifice: The Doctor (x1)',
+    text: `Inscribed Ultimatum
+Area Level: 83
+Item Quantity: +60%
+--------
+Requires Sacrifice: 1x The Doctor, Divination Card
+Reward: 2x The Doctor, Divination Card
+--------
+Defeat the Trialmaster
+--------
+Take this item to the Trialmaster's Altar in the Ultimatum`,
+    notes: 'Requires Sacrifice has 1x The Doctor. Reward has 2x The Doctor.',
+  },
+  {
+    id: 'apothecary-rew',
+    title: 'Reward: The Apothecary (x4)',
+    text: `Inscribed Ultimatum
+Area Level: 83
+--------
+Requires Sacrifice: 2x The Apothecary, Divination Card
+Reward: 4x The Apothecary, Divination Card
+--------
+Survive 10 Waves
+--------
+Take this item to the Trialmaster's Altar in the Ultimatum`,
+    notes: 'Reward has The Apothecary.',
+  },
+  {
     id: 'kaom-sac',
     title: "Sacrifice: Kaom's Sign",
     text: `Inscribed Ultimatum
@@ -39,20 +68,6 @@ Survive 10 Waves
 --------
 Take this item to the Trialmaster's Altar in the Ultimatum`,
     notes: "Requires Sacrifice has Kaom's Sign. Reward is currency.",
-  },
-  {
-    id: 'tabula-sac',
-    title: 'Sacrifice: Tabula Rasa',
-    text: `Inscribed Ultimatum
-Area Level: 80
---------
-Requires Sacrifice: Tabula Rasa, Simple Robe
-Reward: 2x Exalted Orb
---------
-Protect the Altar for 8 Waves
---------
-Take this item to the Trialmaster's Altar in the Ultimatum`,
-    notes: 'Requires Sacrifice has Tabula Rasa.',
   },
   {
     id: 'mageblood-rew',
@@ -69,32 +84,18 @@ Take this item to the Trialmaster's Altar in the Ultimatum`,
     notes: 'Sacrifice is currency, Reward is Mageblood.',
   },
   {
-    id: 'headhunter-rew',
-    title: 'Reward: Headhunter',
+    id: 'tabula-sac',
+    title: 'Sacrifice: Tabula Rasa',
     text: `Inscribed Ultimatum
-Area Level: 83
+Area Level: 80
 --------
-Requires Sacrifice: 10x Exalted Orb
-Reward: Headhunter, Leather Belt
+Requires Sacrifice: Tabula Rasa, Simple Robe
+Reward: 2x Exalted Orb
 --------
-Survive 10 Waves
+Protect the Altar for 8 Waves
 --------
 Take this item to the Trialmaster's Altar in the Ultimatum`,
-    notes: 'Reward has Headhunter.',
-  },
-  {
-    id: 'goldrim-sac',
-    title: 'Sacrifice: Goldrim',
-    text: `Inscribed Ultimatum
-Area Level: 75
---------
-Requires Sacrifice: Goldrim, Leather Cap
-Reward: 5x Chaos Orb
---------
-Defeat 5 Waves of Enemies
---------
-Take this item to the Trialmaster's Altar in the Ultimatum`,
-    notes: 'Requires Sacrifice has Goldrim.',
+    notes: 'Requires Sacrifice has Tabula Rasa.',
   },
 ];
 
@@ -103,7 +104,7 @@ export const RegexTesterModal: React.FC<RegexTesterModalProps> = ({
   onClose,
   chunks,
 }) => {
-  const [selectedPresetId, setSelectedPresetId] = useState<string>('kaom-sac');
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('doctor-sac');
   const [customText, setCustomText] = useState<string>(PRESET_TOOLTIPS[0].text);
   const [copied, setCopied] = useState(false);
 
@@ -138,7 +139,7 @@ export const RegexTesterModal: React.FC<RegexTesterModalProps> = ({
                 Inscribed Ultimatum Regex Tester
               </h2>
               <p className="text-xs text-arpg-muted">
-                Test your generated regex against realistic PoE 1 Inscribed Ultimatum tooltips
+                Test your generated regex against realistic PoE 1 Inscribed Ultimatum tooltips (Uniques & Cards)
               </p>
             </div>
           </div>
@@ -173,7 +174,7 @@ export const RegexTesterModal: React.FC<RegexTesterModalProps> = ({
 
             {chunks.length === 0 ? (
               <p className="text-xs text-amber-400/80 italic">
-                No items are currently selected. Select one or more items in the main table first!
+                No items are currently selected. Select one or more items/cards in the main table first!
               </p>
             ) : (
               <div className="space-y-1">
@@ -296,7 +297,6 @@ export const RegexTesterModal: React.FC<RegexTesterModalProps> = ({
                     );
                   }
 
-                  // Determine line styling
                   const isHeader = idx === 0 || trimmed.includes('Inscribed Ultimatum');
                   const isSacrifice = trimmed.toLowerCase().includes('sacrifice:');
                   const isReward = trimmed.toLowerCase().includes('reward:');

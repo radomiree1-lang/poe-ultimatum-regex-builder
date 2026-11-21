@@ -31,6 +31,7 @@ const CATEGORY_COLORS: Record<UniqueCategory, string> = {
   Flask: 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40',
   Jewel: 'text-purple-400 bg-purple-950/40 border-purple-800/40',
   Tincture: 'text-teal-400 bg-teal-950/40 border-teal-800/40',
+  'Divination Card': 'text-cyan-300 bg-cyan-950/40 border-cyan-800/40',
 };
 
 export const ItemTable: React.FC<ItemTableProps> = ({
@@ -166,12 +167,13 @@ export const ItemTable: React.FC<ItemTableProps> = ({
             {visibleItems.length === 0 ? (
               <tr>
                 <td colSpan={8} className="p-10 text-center text-arpg-muted">
-                  No unique items match your current filter settings.
+                  No items match your current filter settings.
                 </td>
               </tr>
             ) : (
               visibleItems.map((item) => {
                 const isSelected = selectedItemIds.has(item.id);
+                const isCard = item.category === 'Divination Card';
 
                 return (
                   <tr
@@ -206,7 +208,6 @@ export const ItemTable: React.FC<ItemTableProps> = ({
                             loading="lazy"
                             className="max-h-full max-w-full object-contain"
                             onError={(e) => {
-                              // Fallback on image load error
                               (e.target as HTMLElement).style.display = 'none';
                             }}
                           />
@@ -221,7 +222,11 @@ export const ItemTable: React.FC<ItemTableProps> = ({
                       <div className="flex items-center gap-2 flex-wrap">
                         <span
                           className={`font-semibold text-sm ${
-                            isSelected ? 'text-poe-unique-bright' : 'text-poe-unique'
+                            isCard
+                              ? 'text-cyan-300'
+                              : isSelected
+                              ? 'text-poe-unique-bright'
+                              : 'text-poe-unique'
                           }`}
                         >
                           {item.name}
@@ -280,7 +285,7 @@ export const ItemTable: React.FC<ItemTableProps> = ({
 
                     {/* Listing Count */}
                     <td className="p-3 text-right text-arpg-muted hidden lg:table-cell font-mono">
-                      {item.listingCount.toLocaleString()}
+                      {item.listingCount > 0 ? item.listingCount.toLocaleString() : '—'}
                     </td>
                   </tr>
                 );
@@ -303,7 +308,7 @@ export const ItemTable: React.FC<ItemTableProps> = ({
           <strong className="text-arpg-text">
             {totalFilteredCount.toLocaleString()}
           </strong>{' '}
-          uniques
+          items
         </div>
 
         {/* Page size + Navigation */}
@@ -355,7 +360,7 @@ export const ItemTable: React.FC<ItemTableProps> = ({
             <button
               onClick={() => onPageChange(totalPages)}
               disabled={page >= totalPages}
-              className="px-2 py-1 rounded bg-arpg-panel border border-arpg-border hover:bg-arpg-surface text-arpg-text disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+              className="px-2.5 py-1 rounded bg-arpg-panel border border-arpg-border hover:bg-arpg-surface text-arpg-text disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
               title="Last Page"
             >
               &raquo;

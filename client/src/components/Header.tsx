@@ -63,9 +63,8 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
             <p className="text-xs text-arpg-muted flex items-center gap-1.5 mt-0.5">
-              <span>Stash search regex generator powered by live</span>
+              <span>Stash search regex generator for Uniques & Divination Cards powered by</span>
               <span className="text-poe-gold font-medium">poe.ninja</span>
-              <span>prices</span>
             </p>
           </div>
         </div>
@@ -104,7 +103,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Items loaded indicator */}
           <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-arpg-panel/80 border border-arpg-border text-[11px] text-arpg-muted">
             <Layers className="w-3.5 h-3.5 text-poe-gem" />
-            <span>{totalItems.toLocaleString()} uniques</span>
+            <span>{totalItems.toLocaleString()} items</span>
           </div>
 
           {/* Live Regex Tester Modal Trigger */}

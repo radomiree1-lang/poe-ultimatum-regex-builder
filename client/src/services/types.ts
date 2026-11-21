@@ -4,7 +4,8 @@ export type UniqueCategory =
   | 'Accessory'
   | 'Flask'
   | 'Jewel'
-  | 'Tincture';
+  | 'Tincture'
+  | 'Divination Card';
 
 export interface UniqueItem {
   id: string;

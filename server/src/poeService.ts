@@ -18,6 +18,7 @@ export function isItemInUltimatumPool(
 ): boolean {
   if (isReplica) return false;
   if (category === 'Tincture') return false;
+  if (category === 'Divination Card') return true;
   return ULTIMATUM_CORE_SET.has(name.toLowerCase());
 }
 
@@ -141,6 +142,67 @@ async function fetchCategoryItems(
   return [];
 }
 
+async function fetchDivinationCards(league: string): Promise<UniqueItem[]> {
+  const url = `https://poe.ninja/poe1/api/economy/exchange/current/overview?league=${encodeURIComponent(
+    league
+  )}&type=DivinationCard`;
+
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'PoE1-Ultimatum-Regex-Builder/1.0' },
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (res.ok) {
+      const data = (await res.json()) as any;
+      if (data && Array.isArray(data.lines) && Array.isArray(data.items)) {
+        const itemMap = new Map<string, any>();
+        for (const it of data.items) {
+          itemMap.set(it.id, it);
+        }
+        const divineRate = data.core?.rates?.divine || 0;
+
+        return data.lines
+          .filter(
+            (line: any) =>
+              line && typeof line.primaryValue === 'number' && line.primaryValue > 0
+          )
+          .map((line: any) => {
+            const it = itemMap.get(line.id);
+            const name = (it?.name || line.id) as string;
+            const chaosValue = Math.round(line.primaryValue * 10) / 10;
+            const divineValue =
+              divineRate > 0
+                ? Math.round(chaosValue * divineRate * 100) / 100
+                : 0;
+            const slug = name
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-+|-+$/g, '');
+
+            return {
+              id: `${slug}-card`,
+              name,
+              baseType: 'Divination Card',
+              category: 'Divination Card' as const,
+              chaosValue,
+              divineValue,
+              icon:
+                'https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvRGl2aW5hdGlvbi9JbnZlbnRvcnlJY29uIiwidyI6MSwiaCI6MSwic2NhbGUiOjF9XQ/f34bf8c135/InventoryIcon.png',
+              listingCount: 0,
+              variantCount: 1,
+              isReplica: false,
+              isUltimatumPool: true,
+            };
+          });
+      }
+    }
+  } catch (err) {
+    console.warn(`Failed to fetch divination cards for ${league}:`, err);
+  }
+  return [];
+}
+
 export function deduplicateAndNormalize(
   rawItems: Array<{ line: PoeNinjaLine; category: UniqueCategory }>
 ): UniqueItem[] {
@@ -228,8 +290,23 @@ export async function fetchAllUniques(league: string): Promise<UniqueItem[]> {
     return lines.map((line) => ({ line, category }));
   });
 
-  const categoryResults = await Promise.all(fetchPromises);
-  const allLines = categoryResults.flat();
+  const [categoryResults, divinationCards] = await Promise.all([
+    Promise.all(fetchPromises),
+    fetchDivinationCards(league),
+  ]);
 
-  return deduplicateAndNormalize(allLines);
+  const allLines = categoryResults.flat();
+  const normalizedUniques = deduplicateAndNormalize(allLines);
+
+  const combined = [...normalizedUniques, ...divinationCards];
+
+  // Default sort ascending by chaosValue, then name
+  combined.sort((a, b) => {
+    if (a.chaosValue !== b.chaosValue) {
+      return a.chaosValue - b.chaosValue;
+    }
+    return a.name.localeCompare(b.name);
+  });
+
+  return combined;
 }
